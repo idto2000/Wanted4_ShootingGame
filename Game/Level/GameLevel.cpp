@@ -4,6 +4,9 @@
 #include "Actor/PlayerBullet.h"
 #include "Actor/EnemyBullet.h"
 #include "Actor/EnemySpawner.h"
+#include "Actor/MouseTester.h"
+#include "Render/Renderer.h"
+#include "Engine/Engine.h"
 
 GameLevel::GameLevel()
 {
@@ -12,6 +15,9 @@ GameLevel::GameLevel()
 
 	// 적 생성기 추가.
 	AddNewActor(new EnemySpawner());
+
+	// Test: 마우스 테스터 추가.
+	AddNewActor(new MouseTester());
 }
 
 GameLevel::~GameLevel()
@@ -25,6 +31,32 @@ void GameLevel::Tick(float deltaTime)
 	// 충돌 판정 처리.
 	ProcessCollisionPlayerBulletAndEnemy();
 	ProcessCollisionPlayerAndEnemyBullet();
+}
+
+void GameLevel::Draw()
+{
+	super::Draw();
+
+	if (isPlayerDead)
+	{
+		// 플레이어 죽음 메시지 Renderer에 제출.
+		Renderer::Get().Submit("!Dead!", playerDeadPosition);
+
+		// 점수 보여주기.
+		ShowScore();
+
+		// 화면에 바로 표시.
+		Renderer::Get().PresentImmediately();
+
+		// 프로그램 정지.
+		Sleep(2000);
+
+		// 게임 종료.
+		Engine::Get().QuitEngine();
+	}
+
+	// 점수 보여주기.
+	ShowScore();
 }
 
 void GameLevel::ProcessCollisionPlayerBulletAndEnemy()
@@ -65,7 +97,8 @@ void GameLevel::ProcessCollisionPlayerBulletAndEnemy()
 				enemy->OnDamaged();
 				bullet->Destroy();
 
-				// Todo: 점수 추가.
+				// 점수 추가.
+				score += 1;
 				continue;
 			}
 		}
@@ -104,9 +137,25 @@ void GameLevel::ProcessCollisionPlayerAndEnemyBullet()
 	{
 		if (bullet->TestIntersect(player))
 		{
+			// 플레이어 죽음 설정.
+			isPlayerDead = true;
+
+			// 죽은 위치 저장.
+			playerDeadPosition = player->GetPosition();
+
+			// 액터 제거 처리.
 			player->Destroy();
 			bullet->Destroy();
 			break;
 		}
 	}
+}
+
+void GameLevel::ShowScore()
+{
+	sprintf_s(scoreString, 128, "Score: %d", score);
+	Renderer::Get().Submit(
+		scoreString,
+		Vector2(0, Engine::Get().GetHeight() - 1)
+	);
 }

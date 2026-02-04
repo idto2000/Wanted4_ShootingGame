@@ -3,6 +3,7 @@
 #include "Engine/Engine.h"
 #include "Level/Level.h"
 #include "Actor/EnemyBullet.h"
+#include "Actor/EnemyDestroyEffect.h"
 
 Enemy::Enemy(const char* image, int yPosition)
 	: super(image)
@@ -78,7 +79,7 @@ void Enemy::Tick(float deltaTime)
 	// 타이머 리셋.
 	timer.Reset();
 
-	// Todo: (적 탄약 클래스 구현 필요)탄약 발사.
+	// 탄약 발사.
 	GetOwner()->AddNewActor(new EnemyBullet(
 		Vector2(position.x + width / 2, position.y),
 		Util::RandomRange(10.0f, 20.0f)
@@ -90,5 +91,6 @@ void Enemy::OnDamaged()
 	// 액터 제거.
 	Destroy();
 
-	// Todo: 이펙트 생성 (재생을 위해).
+	// 이펙트 생성 (재생을 위해).
+	GetOwner()->AddNewActor(new EnemyDestroyEffect(position));
 }

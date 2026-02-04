@@ -85,6 +85,22 @@ namespace Util
 		float diff = (max - min);
 		return (random * diff) + min;
 	}
+
+	// 어떤 값을 두 수 사이로 고정할 때 사용하는 함수.
+	template<typename T>
+	T Clamp(T value, T min, T max)
+	{
+		if (value < min)
+		{
+			value = min;
+		}
+		else if (value > max)
+		{
+			value = max;
+		}
+
+		return value;
+	}
 }
 
 // 메모리 정리 함수.

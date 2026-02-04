@@ -111,6 +111,19 @@ namespace Wanted
 				{
 					mainLevel->ProcessAddAndDestroyActors();
 				}
+
+				// 레벨 전환 처리.
+				if (nextLevel)
+				{
+					// 기존 레벨 제거.
+					SafeDelete(mainLevel);
+
+					// 전환할 레벨을 메인 레벨로 지정.
+					mainLevel = nextLevel;
+
+					// 포인터 정리.
+					nextLevel = nullptr;
+				}
 			}
 		}
 
@@ -127,15 +140,16 @@ namespace Wanted
 	{
 		// 기존 레벨 있는지 확인.
 		// 있으면 기존 레벨 제거.
-		// Todo: 임시 코드. 레벨 전환할 때는 바로 제거하면 안됨.
-		if (mainLevel)
-		{
-			delete mainLevel;
-			mainLevel = nullptr;
-		}
-
-		// 레벨 설정.
-		mainLevel = newLevel;
+		// 임시 코드. 레벨 전환할 때는 바로 제거하면 안됨.
+		nextLevel = newLevel;
+		//if (mainLevel)
+		//{
+		//	delete mainLevel;
+		//	mainLevel = nullptr;
+		//}
+		//
+		//// 레벨 설정.
+		//mainLevel = newLevel;
 	}
 
 	Engine& Engine::Get()
@@ -226,10 +240,6 @@ namespace Wanted
 		// 레벨이 있으면 이벤트 전달.
 		if (!mainLevel)
 		{
-			// Silent is violent.
-			// 침묵은 폭력이다.
-			// -> 로그 메시지 안남기면 나빠.
-			std::cout << "mainLevel is empty.\n";
 			return;
 		}
 
@@ -238,17 +248,10 @@ namespace Wanted
 
 	void Engine::Tick(float deltaTime)
 	{
-		//std::cout
-		//	<< "DeltaTime: " << deltaTime
-		//	<< ", FPS: " << (1.0f / deltaTime) << "\n";
-
-
-
 		// 레벨에 이벤트 흘리기.
 		// 예외처리.
 		if (!mainLevel)
 		{
-			std::cout << "Error: Engine::Tick(). mainLevel is empty.\n";
 			return;
 		}
 
@@ -261,7 +264,6 @@ namespace Wanted
 		// 예외처리.
 		if (!mainLevel)
 		{
-			std::cout << "Error: Engine::Draw(). mainLevel is empty.\n";
 			return;
 		}
 
