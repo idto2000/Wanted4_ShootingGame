@@ -14,21 +14,45 @@ public:
 	GameLevel();
 	~GameLevel();
 
-private:
+	static GameLevel& Get();
 
+	// 점수 변수.
+	int score = 0;
+	int coin = 0;
+
+	//코인을 사용한 아이템 함수
+	void KillAllEemies();
+	void PlayerShield();
+	void PlayerSpeedBuster();
+
+	//
+	//bool IsSpeedBuffActive() const{	return isSpeedBuffActive;}
+
+private:
+	bool isSpeedBuffActive = false;
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
+	
 
 	// 충돌 판정 처리 함수.
 	void ProcessCollisionPlayerBulletAndEnemy();
 	void ProcessCollisionPlayerAndEnemyBullet();
 
+	//장애물 충돌 판정 처리 함수
+	void ProcessCollisionPlayerBulletAndObstacle();
+	void ProcessCollisionPlayerAndObstacle();
+
+	//아이템 충돌 판정 처리 함수
+	void ProcessCollisionPlayerAndItem();
+
 	// 점수 보여주는 함수.
 	void ShowScore();
 
+	//딜레이 시간 함수();
+	float restartDelayTime = 0.0f;
+
 private:
-	// 점수 변수.
-	int score = 0;
+	
 
 	// 플레이어가 죽었는지 확인.
 	bool isPlayerDead = false;
@@ -38,4 +62,7 @@ private:
 
 	// 점수 문자열.
 	char scoreString[128] = {};
+
+	// 전역적으로 접근하도록 만들기 위한 전역 변수.
+	static GameLevel* instance;
 };

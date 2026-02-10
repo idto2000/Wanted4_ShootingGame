@@ -4,6 +4,7 @@
 #include "Level/Level.h"
 #include "Actor/EnemyBullet.h"
 #include "Actor/EnemyDestroyEffect.h"
+#include "Player.h"
 
 Enemy::Enemy(const char* image, int yPosition)
 	: super(image)

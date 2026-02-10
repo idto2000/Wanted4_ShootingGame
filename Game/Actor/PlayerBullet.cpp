@@ -1,6 +1,6 @@
 #include "PlayerBullet.h"
 
-PlayerBullet::PlayerBullet(const Vector2& position)
+PlayerBullet::PlayerBullet(const Vector2& position, float speed)
 	: super("@", position, Color::Blue),
 	yPosition(static_cast<float>(position.y))
 {

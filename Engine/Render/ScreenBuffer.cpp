@@ -1,6 +1,6 @@
 #include "ScreenBuffer.h"
 #include <iostream>
-#include "Renderer.h"
+#include <Windows.h> // SMALL_RECT, SetConsoleWindowInfo 사용을 위해 필수
 
 namespace Wanted
 {
@@ -28,26 +28,36 @@ namespace Wanted
 			__debugbreak();
 		}
 
-		// 콘솔 창 크기 지정.
-		SMALL_RECT rect;
-		rect.Left = 0;
-		rect.Top = 0;
-		rect.Right = static_cast<short>(screenSize.x - 1);
-		rect.Bottom = static_cast<short>(screenSize.y - 1);
+		// [수정된 핵심 로직] ---------------------------------------------
+		// 1. 윈도우 크기를 먼저 최소(1x1)로 줄여서 버퍼 크기 제약을 피함
+		SMALL_RECT minimalRect = { 0, 0, 1, 1 };
+		SetConsoleWindowInfo(buffer, TRUE, &minimalRect);
 
-		if (!SetConsoleWindowInfo(buffer, true, &rect))
+		// 2. 버퍼(Screen Buffer) 크기를 목표 크기로 설정
+		COORD newSize;
+		newSize.X = static_cast<short>(screenSize.x);
+		newSize.Y = static_cast<short>(screenSize.y);
+
+		if (!SetConsoleScreenBufferSize(buffer, newSize))
 		{
-			//DWORD errorCode = GetLastError();
-			std::cerr << "Failed to set console window info.\n";
+			// 실패 시 에러 메시지 출력 (디버깅용)
+			std::cerr << "Failed to set console buffer size. Error: " << GetLastError() << "\n";
 			__debugbreak();
 		}
 
-		// 버퍼 크기 설정.
-		if (!SetConsoleScreenBufferSize(buffer, screenSize))
+		// 3. 윈도우(Window Info) 크기를 목표 크기로 설정
+		SMALL_RECT targetRect;
+		targetRect.Left = 0;
+		targetRect.Top = 0;
+		targetRect.Right = static_cast<short>(screenSize.x - 1);
+		targetRect.Bottom = static_cast<short>(screenSize.y - 1);
+
+		if (!SetConsoleWindowInfo(buffer, TRUE, &targetRect))
 		{
-			std::cerr << "Failed to set console buffer size.\n";
+			std::cerr << "Failed to set console window info. Error: " << GetLastError() << "\n";
 			__debugbreak();
 		}
+		// ----------------------------------------------------------------
 
 		// 커서 끄기.
 		CONSOLE_CURSOR_INFO info;
@@ -74,7 +84,6 @@ namespace Wanted
 		DWORD writtenCount = 0;
 
 		// 콘솔 버퍼에 있는 화면 지우기.
-		// 그래픽스 -> 지우기 -> 한 색상(또는 값)으로 덮어쓰기.
 		FillConsoleOutputCharacterA(
 			buffer,
 			' ',
@@ -83,8 +92,6 @@ namespace Wanted
 			&writtenCount
 		);
 	}
-
-	
 
 	void ScreenBuffer::Draw(CHAR_INFO* charInfo)
 	{
