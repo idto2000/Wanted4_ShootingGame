@@ -14,7 +14,7 @@ namespace Wanted
 
 	private:
 		virtual void Tick(float deltaTime) override;
-		void SpawnerItem(float deltaTime);
+		void SpawnItem(float deltaTime);
 
 	private:
 		Timer timer;

@@ -10,31 +10,24 @@ class Item : public Actor
 {
 	RTTI_DECLARATIONS(Item, Actor)
 
-		// 이동 방향 열거형.
-		enum class MoveDirection
-	{
-		None = -1,
-		Left,
-		Right
-	};
+public:
+	// [추가] 외부에서 공유해서 쓸 아이템 모양 데이터 선언
+	static const char* ModelTypes[];
+	static const int ModelCount;
 
 public:
 
-	Item(const char* image = "(-O-)", int xPosition = 0, float speed = 0);
+	Item(const char* image, int x, int y, float speed, Color color);
 	~Item();
 	
 	//Tick
-	virtual void Tick(float detaTime) override;
+	virtual void Tick(float deltaTime) override;
 
 	// 플레이어와 충돌했을 때 
-	void TackeDamaged();
+	void TakeDamaged();
 
 private:
 
-	//MoveDirection direction = MoveDirection::None;
-
-	float xPosition = 0.0f;
-	float yPosition = 0.0f;
 	float moveSpeed = 0.0f;
 
 	float yReal = 0.0f;

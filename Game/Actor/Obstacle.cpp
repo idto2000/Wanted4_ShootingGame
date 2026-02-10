@@ -4,8 +4,9 @@
 #include "Util/Util.h"
 #include "Actor/EnemyDestroyEffect.h"
 #include "Actor/Player.h"
+#include "Actor/Item.h"
 
-Obstacle::Obstacle(const char* image, int xPosition, float speed) : super(image)
+Obstacle::Obstacle(const char* image, int xPosition, float speed, int hp) : super(image)
 {
 	// 화면의 가로 너비 측정.
 	int screenWight = Engine::Get().GetWidth();
@@ -24,6 +25,9 @@ Obstacle::Obstacle(const char* image, int xPosition, float speed) : super(image)
 
 	// 변수 초기화
 	this->moveSpeed = speed;
+	
+	//랜덤 체력 적용
+	this->hp = hp;
 
 	//추적 로직에서 사용하는 변수 초기 위치 저장
 	this->xReal = static_cast<float>(randomX);
@@ -72,13 +76,23 @@ void Obstacle::Tick(float deltaTime)
 	
 }
 
-void Obstacle::TackeDamaged()
+void Obstacle::TakeDamaged(int damage)
 {
-	// 액터 제거.
-	Destroy();
+	hp -= damage;
+	if (hp <= 0)
+	{
+		// 파괴되기 전에 아이템 생성 시도
+		TrySpawnItem();
 
-	// 이펙트 생성 (재생을 위해).
-	GetOwner()->AddNewActor(new EnemyDestroyEffect(position));
+		//파괴 이펙트
+		if (GetOwner())
+		{
+			GetOwner()->AddNewActor(new EnemyDestroyEffect(position));
+		}
+
+		//자신 삭제
+		Destroy();
+	}
 }
 
 void Obstacle::OnCollisionWithEnemy()
@@ -155,6 +169,26 @@ void Obstacle::FollowPlayer(float deltaTime, Vector2 PlayerPos)
 	yPosition = yReal;
 
 	SetPosition(Vector2(static_cast<int>(xReal), static_cast<int>(yReal)));
+}
+
+void Obstacle::TrySpawnItem()
+{
+	// 0~1사이 랜덤 실수 생섷
+	float randomValue = Util::RandomRange(0.0f, 1.0f);
+
+	if (randomValue <= itemDropChance)
+	{
+		if (GetOwner())
+		{
+			int idx = Util::Random(0, Item::ModelCount -1);
+
+			Item* newItem = new Item(Item::ModelTypes[idx], static_cast<int>(xReal), static_cast<int>(yReal),
+				5.0f, Color::Green);
+
+			GetOwner()->AddNewActor(newItem);
+		}
+	}
+		
 }
 
 

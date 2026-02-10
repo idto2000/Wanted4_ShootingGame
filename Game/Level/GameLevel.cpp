@@ -332,11 +332,16 @@ void GameLevel::ProcessCollisionPlayerBulletAndObstacle()
 			if(bullet->TestIntersect(obstacle))
 			{
 				//장애물 데미지 함수 호출
-				obstacle->TackeDamaged();
+				obstacle->TakeDamaged();
 				bullet->Destroy();
 
 				// 점수 추가.
 				score += 1;
+
+				if(!isPlayerDead)
+				{
+					Player::Get().UpdateWeaponByScore(score);
+				}
 				continue;
 			}
 		}
@@ -444,7 +449,7 @@ void GameLevel::ProcessCollisionPlayerAndItem()
 			if (player->TestIntersect(item))
 			{
 				//아이템  충돌 함수 호출
-				item->TackeDamaged();
+				item->TakeDamaged();
 				
 				// 점수 추가.
 				coin += 5;
