@@ -8,16 +8,8 @@ using namespace Wanted;
 
 class Obstacle:public Actor
 {
-	RTTI_DECLARATIONS(Obstacle, Actor)
-	
-		// 이동 방향 열거형.
-	enum class MoveDirection
-	{
-		None = -1,
-		Left,
-		Right
-	};
-
+	RTTI_DECLARATIONS(Obstacle, Actor)	
+		
 public:
 	Obstacle(const char* image = "(-O-)", int xPosition = 0, float speed = 0);
 	~Obstacle();
@@ -45,7 +37,8 @@ private:
 	
 private:
 
-	MoveDirection direction = MoveDirection::None;
+	float verticalSpeed = 3.0f;   // 아래로 내려오는 속도
+	float trackingSpeed = 2.0f;   // 플레이어를 쫓아가는 속도
 
 	float xPosition = 0.0f;
 	float yPosition = 0.0f;

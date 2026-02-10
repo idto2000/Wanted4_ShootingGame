@@ -12,6 +12,8 @@
 #include "Actor/Item.h"
 #include "Actor/ItemSpawner.h"
 #include "Level/TitleLevel.h"
+#include "Util/util.h"
+#include "Actor/Background.h"
 
 
 #include <iostream>
@@ -25,11 +27,42 @@ GameLevel::GameLevel()
 	instance = this;
 	restartDelayTime = 0.0f;
 
+	//배경: 원근감을 위해 3개의(Layer)로 나눈다.
+	int screenWidth = Engine::Get().GetWidth();
+	int screenHeight = Engine::Get().GetHeight();
+
+	//레이어 1
+	for (int i = 0; i < 50; ++i)
+	{
+		int x = Util::Random(0, screenWidth-1);
+	    int y = Util::Random(0, screenHeight-1);
+
+		AddNewActor(new Background(x, y, Util::RandomRange(2.0f, 5.0f), ".", Color::Red));
+	}
+
+	//레이어 2
+	for (int i = 0; i < 20; ++i)
+	{
+		int x = Util::Random(0, screenWidth - 1);
+		int y = Util::Random(0, screenHeight - 1);
+
+		AddNewActor(new Background(x, y, Util::RandomRange(8.0f, 12.0f), ".", Color::Green));
+	}
+
+	//레이어 3
+	for (int i = 0; i < 5; ++i)
+	{
+		int x = Util::Random(0, screenWidth - 1);
+		int y = Util::Random(0, screenHeight - 1);
+
+		AddNewActor(new Background(x, y, Util::RandomRange(20.0f, 30.0f), ".", Color::Blue));
+	}
+
 	// Player 액터 추가.
 	AddNewActor(new Player());
-
+	
 	// 적 생성기 추가.
-	AddNewActor(new EnemySpawner());
+	//AddNewActor(new EnemySpawner());
 
 	// Test: 마우스 테스터 추가.
 	AddNewActor(new MouseTester());
@@ -92,6 +125,7 @@ void GameLevel::Tick(float deltaTime)
 	ProcessCollisionPlayerBulletAndEnemy();
 	ProcessCollisionPlayerAndEnemyBullet();
 	ProcessCollisionPlayerBulletAndObstacle();
+	ProcessCollisionPlayerAndObstacle();
 	ProcessCollisionPlayerAndItem();
 }
 
@@ -105,10 +139,10 @@ void GameLevel::Draw()
 		//화면의 중앙에 메시지 출력		 
 		int x = Engine::Get().GetWidth()/2-5;
 		int y = Engine::Get().GetHeight()/2;
-
-
 		Renderer::Get().Submit("!GAME OVER!", Vector2(x, y));
 
+		
+		
 		// 플레이어 죽음 메시지 Renderer에 제출.
 		Renderer::Get().Submit("Wait 3 Seconds...", Vector2(x-2, y+2));
 
@@ -133,10 +167,10 @@ void GameLevel::KillAllEemies()
 {
 	for (Actor* actor : actors)
 	{
-		if (actor->IsTypeOf<Enemy>() || actor->IsTypeOf<EnemyBullet>())
+		if (actor->IsTypeOf<Enemy>() || actor->IsTypeOf<EnemyBullet>() || actor->IsTypeOf<Obstacle>())
 		{
 			actor->Destroy();
-			score += 10;
+			score += 2;
 		}
 	}
 }
@@ -189,11 +223,12 @@ void GameLevel::ProcessCollisionPlayerBulletAndEnemy()
 
 				// 점수 추가.
 				score += 1;
-				
-				//점수가 올랐으니 무기 상태 체크
-				Player::Get().UpdateWeaponByScore(score);
-
-				continue;
+				if (!isPlayerDead)
+				{
+					//점수가 올랐으니 무기 상태 체크
+					Player::Get().UpdateWeaponByScore(score);
+				}
+					continue;
 			}
 		}
 	}
@@ -245,7 +280,7 @@ void GameLevel::ProcessCollisionPlayerAndEnemyBullet()
 				playerDeadPosition = player->GetPosition();
 
 				// 액터 제거 처리.
-				player->Destroy();
+				player->OnDamaged();
 				bullet->Destroy();
 			}
 			else
@@ -323,7 +358,6 @@ void GameLevel::ProcessCollisionPlayerAndObstacle()
 			continue;
 		}
 
-		// [핵심 수정] EnemyBullet -> Obstacle 로 변경해야 합니다!
 		if (actor->IsTypeOf<Obstacle>())
 		{
 			obstacles.emplace_back(actor);
@@ -358,7 +392,7 @@ void GameLevel::ProcessCollisionPlayerAndObstacle()
 				playerDeadPosition = player->GetPosition();
 
 				// 플레이어 제거는 Tick에서 처리하므로 주석 유지
-				//player->Destroy();
+				player->OnDamaged();
 			}
 			else
 			{

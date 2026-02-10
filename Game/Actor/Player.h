@@ -8,17 +8,11 @@ using namespace Wanted;
 
 class Player : public Actor
 {
-	// 발사 모드.
-	enum class FireMode
-	{
-		None = -1,
-		OneShot,
-		Repeat
-	};
-
+	
 	// 무기 타입 정의.
 	enum class WeaponMode
 	{
+		None = -1,
 		singleShot = 0,
 		TripleBurst = 1,
 		SeriesShot = 2
@@ -40,10 +34,14 @@ public:
 	// 스코어에 알맞게 무기를 자동 설정(10 이상 3발, 20 이상 7발, 10이하 1발)
 	void UpdateWeaponByScore(int score);
 
+	//데미지
+	void OnDamaged();
+
 	static Player* GetInstance()
 	{
 		return instance;
 	}
+
 
 private:
 	virtual void Tick(float deltaTime) override;
@@ -91,9 +89,7 @@ private:
 	void ApplyBoundaries();
   
 private:
-	// 발사 모드.
-	FireMode fireMode = FireMode::None;
-
+	
 	//쉴드를 갖고 있는 포인터
 	//Shield* myShield = nullptr;
 	
@@ -112,8 +108,9 @@ private:
 
 	//관성 설정(가속도, 마찰력, 이동속도 제한)
 	float acceleration = 15.0f;
-	float friction = 120.0f;
-	float maxSpeed = 10.0f;
+	float friction = 10.0f;
+	float maxSpeed = 20.0f;
+
 
 	float orignalMaxSpeed;
 	float orignalAcceleration;
@@ -124,7 +121,7 @@ private:
 	float xReal = 0.0f;
 	float yReal = 0.0f;
 
-	WeaponMode currentMode; // 현재 무기 모드
+	WeaponMode currentMode = WeaponMode::None; // 현재 무기 모드
 
 	// 1. 속도 및 설정
 	int burstCountTotal = 1;       // 한 번 발사 시 나가는 총알 개수 (1, 3, 7)

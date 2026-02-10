@@ -6,16 +6,19 @@
 #include "Level/TitleLevel.h"
 #include "Render/Renderer.h"
 #include "Level/GameLevel.h"
+#include "Actor/EnemyDestroyEffect.h"
 //#include "Actor/Shield.h"
 
 #include<iostream>
+#include<cmath>//Player의 움직임을 부드럽게 하기 위한 수학함수
 
 // 전역 변수 초기화.
 Player* Player::instance = nullptr;
 
+
 Player::Player()
 	: super("<=A=>", Vector2::Zero, Color::Green),
-	fireMode(FireMode::OneShot)
+	currentMode(WeaponMode::singleShot)
 {
 	instance = this;
 	// 플레이어의 Width, Height 값 설정(플레이어를 중앙에 배치).
@@ -24,8 +27,8 @@ Player::Player()
 	SetPosition(Vector2(static_cast<int>(xReal), static_cast<int>(yReal)));
 	
 	//기본 무기 설정
-	SetWeaponMode(WeaponMode::singleShot);
-
+	//SetWeaponMode(WeaponMode::singleShot);
+	
 	//점사 관련 변수 초기화 
 	isBursting = false;
 	burstCountCurrent = 0;
@@ -102,6 +105,15 @@ void Player::UpdateWeaponByScore(int score)
 			SetWeaponMode(WeaponMode::singleShot);
 		}
 	}
+}
+
+void Player::OnDamaged()
+{
+	// 액터 제거.
+	Destroy();
+
+	// 이펙트 생성 (재생을 위해).
+	GetOwner()->AddNewActor(new EnemyDestroyEffect(position));
 }
 
 void Player::Tick(float deltaTime)
@@ -223,26 +235,43 @@ void Player::Tick(float deltaTime)
 		yVelocity = ApplyFricition(yVelocity, friction, deltaTime);
 	}
 
-	// 2개의 키가 입력되어 대각선 이동한다면 (true: *0.0707f) 아니면 (false: maxSpeed) 속도 그래도를 사용해라. 
-	float currentMax = (isInputX && isInputY) ? maxSpeed * 0.707f : maxSpeed;
+	//현재 속도의 제곱을 구합니다.(피타고라스 정의)
+	float currenSpeedSq = (xVelocity * xVelocity) + (yVelocity * yVelocity);
 
-	if (xVelocity > currentMax)
+	//현재 속도가 최대 속도를 넘어서면 비율을 맞춰 줄여준다.
+	if (currenSpeedSq > maxSpeed * maxSpeed)
 	{
-		xVelocity = currentMax;
-	}
-	else if (xVelocity < -currentMax)
-	{
-		xVelocity = -currentMax;
+		//현재 실제 속력을 구한다.(sqrt: 루트를 프로그래밍에서 계산해주는 함수)
+		float currentSpeed = sqrt(currenSpeedSq);
+
+		// (최대 속도 / 현재 속도) 비율만큼 X, Y 속도를 줄임
+	   // 이렇게 하면 방향은 유지된 채 속도만 부드럽게 줄어듭니다.
+		float scale = maxSpeed / currentSpeed;
+
+		xVelocity *= scale;
+		yVelocity *= scale;
 	}
 
-	if (yVelocity > currentMax)
-	{
-		yVelocity = currentMax;
-	}
-	else if (yVelocity < -currentMax)
-	{
-		yVelocity = -currentMax;
-	}
+	//// 2개의 키가 입력되어 대각선 이동한다면 (true: *0.0707f) 아니면 (false: maxSpeed) 속도 그래도를 사용해라. 
+	//float currentMax = (isInputX && isInputY) ? maxSpeed * 0.707f : maxSpeed;
+
+	//if (xVelocity > currentMax)
+	//{
+	//	xVelocity = currentMax;
+	//}
+	//else if (xVelocity < -currentMax)
+	//{
+	//	xVelocity = -currentMax;
+	//}
+
+	//if (yVelocity > currentMax)
+	//{
+	//	yVelocity = currentMax;
+	//}
+	//else if (yVelocity < -currentMax)
+	//{
+	//	yVelocity = -currentMax;
+	//}
 
 	xReal += xVelocity * deltaTime;
 	yReal += yVelocity * deltaTime;
@@ -450,7 +479,7 @@ float Player::ApplyFricition(float currentVelocity, float friction, float deltaT
 	//마찰력 구하기
 	float amount = friction * deltaTime;
 
-	//현재 속도가 오른쪽일 경우(+)와 왼쪽일 경우(-) 관성 적용
+	//현재 속도가 양수 일때 (오른쪽, 아래) 관성 적용
 	if (currentVelocity > 0.0f)
 	{
 		if (currentVelocity - amount < 0.0f)
@@ -462,9 +491,11 @@ float Player::ApplyFricition(float currentVelocity, float friction, float deltaT
 			return currentVelocity - amount;
 		}
 	}
+
+	////현재 속도가 음수 일때 (왼쪽, 아래) 관성 적용
 	else if (currentVelocity < 0.0f)
 	{
-		if (currentVelocity + amount < 0.0f)
+		if (currentVelocity + amount > 0.0f)
 		{
 			return 0.0f;
 		}

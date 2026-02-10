@@ -44,17 +44,32 @@ Obstacle::~Obstacle()
 void Obstacle::Tick(float deltaTime)
 {
 	yReal += moveSpeed * deltaTime;
-	
-	//싱글톤을 사용해 플레이어 위치 정보 가져오기
-	Vector2 pPos = Player::Get().GetPosition();
 
-	FollowPlayer(deltaTime, pPos);
+	Player* player = Player::GetInstance();
 	
+	if (player != nullptr)
+	{
+		//싱글톤을 사용해 플레이어 위치 정보 가져오기
+		Vector2 pPos = Player::Get().GetPosition();
+
+		if (pPos.x > xPosition)
+		{
+			xPosition += trackingSpeed * deltaTime;
+		}
+		else if (pPos.x < (int)xPosition)
+		{
+			xPosition -= trackingSpeed * deltaTime;
+		}
+
+		FollowPlayer(deltaTime, pPos);
+	}
+
 	// 화면 하단 이탈 검사
 	if (position.y >= Engine::Get().GetHeight())
 	{
 		Destroy();
 	}
+	
 }
 
 void Obstacle::TackeDamaged()

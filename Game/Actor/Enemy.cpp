@@ -44,6 +44,14 @@ void Enemy::Tick(float deltaTime)
 {
 	super::Tick(deltaTime);
 
+	//플레이어를 호출할 수 있기에 안전하게 정리한다.
+	Player* player = Player::GetInstance();
+	
+	if (player != nullptr)
+	{
+
+	}
+
 	// 이동 처리.
 	float dir
 		= direction == MoveDirection::Left ? -1.0f : 1.0f;
@@ -85,6 +93,8 @@ void Enemy::Tick(float deltaTime)
 		Vector2(position.x + width / 2, position.y),
 		Util::RandomRange(10.0f, 20.0f)
 	));
+
+	
 }
 
 void Enemy::OnDamaged()
