@@ -62,7 +62,7 @@ GameLevel::GameLevel()
 	AddNewActor(new Player());
 	
 	// 적 생성기 추가.
-	//AddNewActor(new EnemySpawner());
+	AddNewActor(new EnemySpawner());
 
 	// Test: 마우스 테스터 추가.
 	AddNewActor(new MouseTester());
